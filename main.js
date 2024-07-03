@@ -45,7 +45,7 @@ function setTrayTitle(title) {
     tray.setTitle(title)
 }
 
-let wsObj = { btc: '', eth: '' }
+let wsObj = { btc: '', eth: '', ftt: '', arkm: '' }
 function startWs(){
     const WebSocket = require('ws')
     const ws = new WebSocket('wss://stream.binance.com:9443/stream?streams=');
@@ -53,7 +53,7 @@ function startWs(){
     //连接成功回调
     ws.onopen = (evt) => {
         console.log("onopen ...");
-        ws.send(JSON.stringify({"method": "SUBSCRIBE","params":["btcusdt@depth5@1000ms","ethusdt@depth5@1000ms"],"id": 1}))
+        ws.send(JSON.stringify({"method": "SUBSCRIBE","params":["btcusdt@depth5@1000ms","ethusdt@depth5@1000ms","fttusdt@depth5@1000ms","arkmusdt@depth5@1000ms"],"id": 1}))
     }
 
     //消息监听
@@ -74,8 +74,15 @@ function startWs(){
             if (data.stream.includes('ethusdt')) {
                 wsObj.eth = parseFloat(ask[0]).toFixed(2)
             }
+            if (data.stream.includes('fttusdt')) {
+                wsObj.ftt = parseFloat(ask[0]).toFixed(2)
+            }
+            if (data.stream.includes('arkmusdt')) {
+                wsObj.arkm = parseFloat(ask[0]).toFixed(2)
+            }
 
-            setTrayTitle(`btc:${wsObj.btc} eth:${wsObj.eth}`)
+            // setTrayTitle(`btc:${wsObj.btc} eth:${wsObj.eth} ftt:${wsObj.ftt} arkm:${wsObj.arkm}`)
+            setTrayTitle(`btc:${wsObj.btc} ftt:${wsObj.ftt} arkm:${wsObj.arkm}`)
         }
     }
 
