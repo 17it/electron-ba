@@ -37,10 +37,10 @@ const createWindow = () => {
 }
 
 // 消息通知
-const NOTIFICATION_TITLE = 'Basic Notification'
+const NOTIFICATION_TITLE = '新消息'
 const NOTIFICATION_BODY = 'Notification from the Main process'
-function showNotification () {
-    new Notification({ title: NOTIFICATION_TITLE, body: NOTIFICATION_BODY }).show()
+function showNotification (msg) {
+    new Notification({ title: NOTIFICATION_TITLE, body: msg || NOTIFICATION_BODY }).show()
 }
 
 // 菜单栏
@@ -65,15 +65,28 @@ function setTrayTitle(title) {
     tray.setTitle(title)
 }
 
+// 连接ws
+function wsInit() {
+    connectWs((type, msg) => {
+        if (type === 'title') {
+            setTrayTitle(msg)
+        }
+        if (type === 'notify') {
+            showNotification(msg)
+        }
+        if (type === 'close' || type === 'error') {
+            wsInit()
+        }
+    })
+}
+
 app.whenReady().then(() => {
     createWindow()
-
-    // showNotification()
 
     initTray()
     setTrayTitle('binance')
 
-    connectWs(setTrayTitle)
+    wsInit()
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
