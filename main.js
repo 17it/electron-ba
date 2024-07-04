@@ -1,5 +1,9 @@
 const { app, BrowserWindow, Notification, Menu, Tray, nativeImage } = require('electron')
+const { SocksProxyAgent } = require('socks-proxy-agent')
 const path = require('node:path')
+
+// 设置系统代理
+app.commandLine.appendSwitch('proxy-server', 'socks5://127.0.0.1:7890')
 
 const createWindow = () => {
     const win = new BrowserWindow({
@@ -11,9 +15,15 @@ const createWindow = () => {
         }
     })
 
-    win.loadFile('index.html')
+    // win.loadFile('index.html')
     // win.loadURL('https://contract-test.imeik.com/')
     // win.webContents.openDevTools()
+
+    // win.webContents.session.setProxy({
+    //     proxyRules: 'socks5://127.0.0.1:7890'
+    // })
+
+    win.loadURL('https://www.google.com/')
 }
 
 const NOTIFICATION_TITLE = 'Basic Notification'
@@ -47,18 +57,24 @@ function setTrayTitle(title) {
 
 let wsObj = { btc: '', eth: '', ftt: '', arkm: '' }
 function startWs(){
+    console.log('startWs')
     const WebSocket = require('ws')
-    const ws = new WebSocket('wss://stream.binance.com:9443/stream?streams=');
+    const socket = new WebSocket('wss://stream.binance.com:9443/stream?streams=');
+    // const agent = new SocksProxyAgent('socks5://127.0.0.1:7890', {
+    //     rejectUnauthorized: false  // 忽略 SSL/TLS 证书验证
+    // })
+    // const socket = new WebSocket('wss://stream.binance.com:9443/stream?streams=', { agent });
 
     //连接成功回调
-    ws.onopen = (evt) => {
+    socket.onopen = (evt) => {
         console.log("onopen ...");
-        ws.send(JSON.stringify({"method": "SUBSCRIBE","params":["btcusdt@depth5@1000ms","ethusdt@depth5@1000ms","fttusdt@depth5@1000ms","arkmusdt@depth5@1000ms"],"id": 1}))
+        socket.send(JSON.stringify({"method": "SUBSCRIBE","params":["btcusdt@depth5@1000ms","ethusdt@depth5@1000ms","fttusdt@depth5@1000ms","arkmusdt@depth5@1000ms"],"id": 1}))
     }
 
     //消息监听
-    ws.onmessage = (evt) => {
+    socket.onmessage = (evt) => {
         let data = evt.data
+        console.log("onmessage ...", data);
 
         try {
             data = JSON.parse(data)
@@ -75,25 +91,24 @@ function startWs(){
                 wsObj.eth = parseFloat(ask[0]).toFixed(2)
             }
             if (data.stream.includes('fttusdt')) {
-                wsObj.ftt = parseFloat(ask[0]).toFixed(2)
+                wsObj.ftt = parseFloat(ask[0]).toFixed(4)
             }
             if (data.stream.includes('arkmusdt')) {
-                wsObj.arkm = parseFloat(ask[0]).toFixed(2)
+                wsObj.arkm = parseFloat(ask[0]).toFixed(3)
             }
 
-            // setTrayTitle(`btc:${wsObj.btc} eth:${wsObj.eth} ftt:${wsObj.ftt} arkm:${wsObj.arkm}`)
-            setTrayTitle(`btc:${wsObj.btc} ftt:${wsObj.ftt} arkm:${wsObj.arkm}`)
+            setTrayTitle(`btc:${wsObj.btc} ftt:${wsObj.ftt} arkm:${wsObj.arkm} eth:${wsObj.eth}`)
         }
     }
 
     //连接失败
-    ws.onerror = function(evt){
+    socket.onerror = function(evt){
         //关闭连接
-        ws.close();
-        console.log("onerror " + evt);
+        socket.close();
+        console.log("onerror " + JSON.stringify(evt));
     }
 
-    return ws;
+    return socket;
 }
 
 app.whenReady().then(() => {
