@@ -1,10 +1,18 @@
 const { app, BrowserWindow, Notification, Menu, Tray, nativeImage, ipcMain } = require('electron')
-const { SocksProxyAgent } = require('socks-proxy-agent')
+const { connectWs } = require('./util/wsNode')
 const path = require('node:path')
 
 // 设置系统代理
 // app.commandLine.appendSwitch('proxy-server', 'socks5://127.0.0.1:7890')
 
+/**
+ * 有两种方法可以链接websocket
+ *   1.使用nodejs的模块ws，详见util/wsNode
+ *   2.在webview里使用window.websocket，详见index.html里引用的renderer.js，然后通过ipcMain传给主进程main.js里，然后展示到菜单栏
+ *
+ *   比较：
+ *      方法2在关闭窗口后会中断websocket连接，而方法1不会
+ */
 const createWindow = () => {
     const win = new BrowserWindow({
         width: 800,
@@ -15,25 +23,27 @@ const createWindow = () => {
         }
     })
 
-    // 监听setTitle事件
-    ipcMain.on('setTitle', (event, str) => setTrayTitle(str))
-
     win.webContents.session.setProxy({
         proxyRules: 'socks5://127.0.0.1:7890'
     })
-    win.loadFile('index.html')
+
+    // win.loadFile('index.html')
+    // ipcMain.on('setTitle', (event, str) => setTrayTitle(str)) // 监听setTitle事件
+
     // win.webContents.openDevTools()
 
     // win.loadURL('https://contract-test.imeik.com/')
-    // win.loadURL('https://www.google.com/')
+    win.loadURL('https://www.google.com/')
 }
 
+// 消息通知
 const NOTIFICATION_TITLE = 'Basic Notification'
 const NOTIFICATION_BODY = 'Notification from the Main process'
 function showNotification () {
     new Notification({ title: NOTIFICATION_TITLE, body: NOTIFICATION_BODY }).show()
 }
 
+// 菜单栏
 let tray
 function initTray() {
     const icon = nativeImage.createFromPath(path.join(__dirname, 'icon.png'))
@@ -55,62 +65,6 @@ function setTrayTitle(title) {
     tray.setTitle(title)
 }
 
-// let wsObj = { btc: '', eth: '', ftt: '', arkm: '' }
-// function startWs(){
-//     console.log('startWs')
-//     const WebSocket = require('ws')
-//     const socket = new WebSocket('wss://stream.binance.com:9443/stream?streams=');
-//     // const agent = new SocksProxyAgent('socks5://127.0.0.1:7890', {
-//     //     rejectUnauthorized: false  // 忽略 SSL/TLS 证书验证
-//     // })
-//     // const socket = new WebSocket('wss://stream.binance.com:9443/stream?streams=', { agent });
-//
-//     //连接成功回调
-//     socket.onopen = (evt) => {
-//         console.log("onopen ...");
-//         socket.send(JSON.stringify({"method": "SUBSCRIBE","params":["btcusdt@depth5@1000ms","ethusdt@depth5@1000ms","fttusdt@depth5@1000ms","arkmusdt@depth5@1000ms"],"id": 1}))
-//     }
-//
-//     //消息监听
-//     socket.onmessage = (evt) => {
-//         let data = evt.data
-//         console.log("onmessage ...", data);
-//
-//         try {
-//             data = JSON.parse(data)
-//         }  catch (error) {
-//             data = {}
-//         }
-//
-//         if (data && data.data && data.data.asks && data.data.asks.length) {
-//             const ask = data.data.asks[0]
-//             if (data.stream.includes('btcusdt')) {
-//                 wsObj.btc = parseFloat(ask[0]).toFixed(2)
-//             }
-//             if (data.stream.includes('ethusdt')) {
-//                 wsObj.eth = parseFloat(ask[0]).toFixed(2)
-//             }
-//             if (data.stream.includes('fttusdt')) {
-//                 wsObj.ftt = parseFloat(ask[0]).toFixed(4)
-//             }
-//             if (data.stream.includes('arkmusdt')) {
-//                 wsObj.arkm = parseFloat(ask[0]).toFixed(3)
-//             }
-//
-//             setTrayTitle(`btc:${wsObj.btc} ftt:${wsObj.ftt} arkm:${wsObj.arkm} eth:${wsObj.eth}`)
-//         }
-//     }
-//
-//     //连接失败
-//     socket.onerror = function(evt){
-//         //关闭连接
-//         socket.close();
-//         console.log("onerror " + JSON.stringify(evt));
-//     }
-//
-//     return socket;
-// }
-
 app.whenReady().then(() => {
     createWindow()
 
@@ -118,6 +72,8 @@ app.whenReady().then(() => {
 
     initTray()
     setTrayTitle('binance')
+
+    connectWs(setTrayTitle)
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
