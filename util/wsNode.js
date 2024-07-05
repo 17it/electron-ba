@@ -1,11 +1,12 @@
-const { SocksProxyAgent } = require("socks-proxy-agent");
-const WebSocket = require("ws");
+const { SocksProxyAgent } = require('socks-proxy-agent')
+const { pairs } = require('../config/const')
+const WebSocket = require('ws')
 
 /**
  * 使用nodejs带的包ws连socket（即使退出当前窗口也能继续执行）
  */
 
-let wsObj = { btc: '', eth: '', ftt: '', arkm: '' }
+let wsObj = { btc: '--', eth: '--', ftt: '--', arkm: '--' }
 let socket
 
 // 连binance的websocket
@@ -29,7 +30,7 @@ function connectWs(callBack){
         // socket.send(JSON.stringify({"method": "SUBSCRIBE","params":["btcusdt@depth5@1000ms","ethusdt@depth5@1000ms","fttusdt@depth5@1000ms","arkmusdt@depth5@1000ms"],"id": 1}))
         socket.send(JSON.stringify({
             "method": "SUBSCRIBE",
-            "params":["btcusdt@kline_1m","ethusdt@kline_1m","fttusdt@kline_1m","arkmusdt@kline_1m"],
+            "params": pairs,
             "id": 1
         }))
     }

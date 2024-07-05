@@ -52,9 +52,15 @@ function initTray() {
 
     const contextMenu = Menu.buildFromTemplate([
         {
+            label: '设置币对',
+            click: function(){
+                setParis()
+            }
+        },
+        {
             label: '退出',
             click: function(){
-                app.quit();
+                app.quit()
             }
         }
     ]);
@@ -78,6 +84,25 @@ function wsInit() {
             wsInit()
         }
     })
+}
+
+// 设置代理
+function setProxy() {}
+
+// 设置币对
+function setParis() {
+    const pairWin = new BrowserWindow({
+        titleBarStyle: 'hidden',
+        titleBarOverlay: {
+            color: '#2f3241',
+            symbolColor: '#74b1be',
+            height: 60
+        }
+    })
+
+    pairWin.webContents.openDevTools()
+
+    pairWin.loadFile('pages/pair/pair.html')
 }
 
 app.whenReady().then(() => {
