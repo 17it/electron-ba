@@ -5,9 +5,16 @@ const WebSocket = require('ws')
 /**
  * 使用nodejs带的包ws连socket（即使退出当前窗口也能继续执行）
  */
-
-let wsObj = { btc: '--', eth: '--', ftt: '--', arkm: '--' }
+const sufix = 'usdt@kline_1m'
+const wsObj = { }
 let socket
+
+// 小数位数展示
+function fixNum(num, fix = 2) {
+    const pow = Math.pow(10, fix)
+
+    return parseInt(num * pow) / pow
+}
 
 // 连binance的websocket
 function connectWs(callBack){
@@ -27,7 +34,6 @@ function connectWs(callBack){
     socket.onopen = () => {
         console.log("onopen ...");
 
-        // socket.send(JSON.stringify({"method": "SUBSCRIBE","params":["btcusdt@depth5@1000ms","ethusdt@depth5@1000ms","fttusdt@depth5@1000ms","arkmusdt@depth5@1000ms"],"id": 1}))
         socket.send(JSON.stringify({
             "method": "SUBSCRIBE",
             "params": pairs,
@@ -48,20 +54,18 @@ function connectWs(callBack){
 
         if (data && data.data && data.data.k) {
             const cl = data.data.k.c
-            if (data.stream.includes('btcusdt')) {
-                wsObj.btc = parseFloat(cl).toFixed(2)
-            }
-            if (data.stream.includes('ethusdt')) {
-                wsObj.eth = parseFloat(cl).toFixed(2)
-            }
-            if (data.stream.includes('fttusdt')) {
-                wsObj.ftt = parseFloat(cl).toFixed(4)
-            }
-            if (data.stream.includes('arkmusdt')) {
-                wsObj.arkm = parseFloat(cl).toFixed(3)
+
+            if (data.stream.includes(sufix)) {
+                const coin = data.stream.replace(sufix, '')
+                const arrow = wsObj[coin] ? (fixNum(cl, 4) > parseFloat(wsObj[coin]) ? '↑' : '↓') : ''
+                wsObj[coin] = `${fixNum(cl, 4)}${arrow}`
             }
 
-            callBack('title', `btc:${wsObj.btc} ftt:${wsObj.ftt} arkm:${wsObj.arkm} eth:${wsObj.eth}`)
+            const keys = Object.keys(wsObj)
+            const values = Object.values(wsObj)
+
+
+            callBack('title', keys.map((key, index) => `${key}:${values[index]}`).join('  '))
         }
     }
 
