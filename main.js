@@ -6,6 +6,7 @@ const path = require('node:path')
 // app.commandLine.appendSwitch('proxy-server', 'socks5://127.0.0.1:7890')
 
 let mainWin
+let pairWin
 
 /**
  * 有两种方法可以链接websocket
@@ -43,6 +44,24 @@ const NOTIFICATION_TITLE = '新消息'
 const NOTIFICATION_BODY = 'Notification from the Main process'
 function showNotification (msg) {
     new Notification({ title: NOTIFICATION_TITLE, body: msg || NOTIFICATION_BODY }).show()
+}
+
+// 设置监听
+function setListener() {
+    // 监听重连ws事件
+    ipcMain.on('reconnectWs', (event) => wsInit())
+
+    // 重启APP
+    ipcMain.on('relaunch', (event) => {
+        app.quit()
+    })
+
+    // 监听窗口关闭
+    ipcMain.on('closeWindow', (event, type) => {
+        if (type === 'pair') {
+            pairWin.destroy()
+        }
+    })
 }
 
 // 菜单栏
@@ -114,16 +133,22 @@ function setOnTop() {
 
 // 设置币对
 function setParis() {
-    const pairWin = new BrowserWindow({
+    pairWin = new BrowserWindow({
         titleBarStyle: 'hidden',
         titleBarOverlay: {
             color: '#2f3241',
             symbolColor: '#74b1be',
             height: 60
+        },
+        width: 400,
+        height: 300,
+        webPreferences: {
+            nodeIntegration: true,
+            preload: path.join(__dirname, 'preload.js')
         }
     })
 
-    pairWin.webContents.openDevTools()
+    // pairWin.webContents.openDevTools()
 
     pairWin.loadFile('pages/pair/pair.html')
 }
@@ -133,6 +158,8 @@ app.whenReady().then(() => {
 
     initTray()
     setTrayTitle('binance')
+
+    setListener()
 
     wsInit()
 

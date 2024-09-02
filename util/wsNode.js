@@ -1,6 +1,7 @@
 const { SocksProxyAgent } = require('socks-proxy-agent')
-const { pairs } = require('../config/const')
+const path = require('path')
 const WebSocket = require('ws')
+const fs = require('fs')
 
 /**
  * 使用nodejs带的包ws连socket（即使退出当前窗口也能继续执行）
@@ -18,80 +19,84 @@ function fixNum(num, fix = 2) {
 
 // 连binance的websocket
 function connectWs(callBack){
-    console.log('connectWs')
+    const url = path.join(__dirname, '../config/config.yaml')
 
-    // 注意：这里不能用socks5，不知道为啥
-    // const proxyAgent = new SocksProxyAgent(`socks5://127.0.0.1:7890`);
-    const proxyAgent = new SocksProxyAgent(`socks://127.0.0.1:7890`);
-    const connect = () => {
-        socket = new WebSocket('wss://stream.binance.com:9443/stream?streams=', {
-            agent: proxyAgent
-        })
-    }
-    connect() // 连接ws
+    fs.readFile(url, 'utf8', (err, dataStr) => {
+        const data = JSON.parse(dataStr)
 
-    //连接成功回调
-    socket.onopen = () => {
-        console.log("onopen ...");
+        // 注意：这里不能用socks5，不知道为啥
+        // const proxyAgent = new SocksProxyAgent(`socks5://127.0.0.1:7890`);
+        const proxyAgent = new SocksProxyAgent(`socks://127.0.0.1:7890`);
+        const connect = () => {
+            socket = new WebSocket('wss://stream.binance.com:9443/stream?streams=', {
+                agent: proxyAgent
+            })
+        }
+        connect() // 连接ws
 
-        socket.send(JSON.stringify({
-            "method": "SUBSCRIBE",
-            "params": pairs,
-            "id": 1
-        }))
-    }
+        //连接成功回调
+        socket.onopen = () => {
+            console.log("onopen ...");
 
-    //消息监听
-    socket.onmessage = (evt) => {
-        let data = evt.data
-        // console.log("onmessage ...", data);
-
-        try {
-            data = JSON.parse(data)
-        }  catch (error) {
-            data = {}
+            socket.send(JSON.stringify({
+                "method": "SUBSCRIBE",
+                "params": data.pairs,
+                "id": 1
+            }))
         }
 
-        if (data && data.data && data.data.k) {
-            const cl = data.data.k.c
+        //消息监听
+        socket.onmessage = (evt) => {
+            let data = evt.data
+            // console.log("onmessage ...", data);
 
-            if (data.stream.includes(sufix)) {
-                const coin = data.stream.replace(sufix, '')
-                const arrow = wsObj[coin] ? (fixNum(cl, 4) > parseFloat(wsObj[coin]) ? '↑' : '↓') : ''
-                wsObj[coin] = `${fixNum(cl, 4)}${arrow}`
+            try {
+                data = JSON.parse(data)
+            }  catch (error) {
+                data = {}
             }
 
-            const keys = Object.keys(wsObj)
-            const values = Object.values(wsObj)
+            if (data && data.data && data.data.k) {
+                const cl = data.data.k.c
+
+                if (data.stream.includes(sufix)) {
+                    const coin = data.stream.replace(sufix, '')
+                    const arrow = wsObj[coin] ? (fixNum(cl, 4) > parseFloat(wsObj[coin]) ? '↑' : '↓') : ''
+                    wsObj[coin] = `${fixNum(cl, 4)}${arrow}`
+                }
+
+                const keys = Object.keys(wsObj)
+                const values = Object.values(wsObj)
 
 
-            callBack('title', keys.map((key, index) => `${key}:${values[index]}`).join('  '))
+                callBack('title', keys.map((key, index) => `${key}:${values[index]}`).join('  '))
+            }
         }
-    }
 
-    //连接失败
-    socket.onerror = function(evt){
-        //关闭连接
-        socket.close();
-        callBack('notify', 'ws连接断开，正在重连...')
-        setTimeout(() => {
-            callBack('error')
-        },2000)
+        //连接失败
+        socket.onerror = function(evt){
+            //关闭连接
+            socket.close();
+            callBack('notify', 'ws连接断开，正在重连...')
+            setTimeout(() => {
+                callBack('error')
+            },2000)
 
-        console.log("onerror " + JSON.stringify(evt));
-    }
+            console.log("onerror " + JSON.stringify(evt));
+        }
 
-    // 连接关闭
-    socket.onclose = function(evt){
-        callBack('notify', 'ws连接断开，正在重连...')
-        setTimeout(() => {
-            callBack('close')
-        },2000)
+        // 连接关闭
+        socket.onclose = function(evt){
+            callBack('notify', 'ws连接断开，正在重连...')
+            setTimeout(() => {
+                callBack('close')
+            },2000)
 
-        console.log("onclose " + JSON.stringify(evt));
-    }
+            console.log("onclose " + JSON.stringify(evt));
+        }
 
-    return socket;
+        return socket;
+    })
 }
 
 module.exports = { connectWs }

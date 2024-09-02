@@ -1,0 +1,9 @@
+{
+  "pairs": [
+    "btcusdt@kline_1m",
+    "fttusdt@kline_1m",
+    "ethusdt@kline_1m",
+    "arkmusdt@kline_1m"
+  ],
+  "socks": "socks5://127.0.0.1:7890"
+}
