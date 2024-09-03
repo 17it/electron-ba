@@ -62,6 +62,11 @@ function setListener() {
             pairWin.destroy()
         }
     })
+
+    // 获取userData的路径
+    ipcMain.on('getUserPath', (event) => {
+        event.sender.send('got-user-path', app.getPath('userData'))
+    })
 }
 
 // 菜单栏

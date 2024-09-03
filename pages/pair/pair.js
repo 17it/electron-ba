@@ -9,7 +9,7 @@ function readFile() {
     var dom = document.getElementById('pairs')
 
     window.electronAPI.readFile({
-        path: './config/config.yaml',
+        path: './config.yaml',
         cb: (err, data) => {
             data = JSON.parse(data)
             fileData = data
@@ -26,7 +26,7 @@ function submit() {
     const str = JSON.stringify(fileData, null, 2)
 
     window.electronAPI.writeFile({
-        path: './config/config.yaml',
+        path: './config.yaml',
         str: str,
         cb: (err) => {
             if (err) {

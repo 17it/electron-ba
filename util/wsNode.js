@@ -2,6 +2,7 @@ const { SocksProxyAgent } = require('socks-proxy-agent')
 const path = require('path')
 const WebSocket = require('ws')
 const fs = require('fs')
+const { app } = require('electron');
 
 /**
  * 使用nodejs带的包ws连socket（即使退出当前窗口也能继续执行）
@@ -19,7 +20,7 @@ function fixNum(num, fix = 2) {
 
 // 连binance的websocket
 function connectWs(callBack){
-    const url = path.join(__dirname, '../config/config.yaml')
+    const url = path.join(app.getPath('userData'), './config.yaml')
 
     fs.readFile(url, 'utf8', (err, dataStr) => {
         const data = JSON.parse(dataStr)

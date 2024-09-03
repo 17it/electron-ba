@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron/renderer')
 const path = require('node:path')
 const fs= require('fs')
+let userPath = ''
 
 window.addEventListener('DOMContentLoaded', () => {
     const replaceText = (selector, text) => {
@@ -28,7 +29,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // 读取文件
     readFile: (opt) => {
-        const url = path.join(__dirname, opt.path)
+        const url = path.join(userPath, opt.path)
         fs.readFile(url, 'utf8', (err, dataStr) => {
             opt.cb && opt.cb(err, dataStr)
         })
@@ -36,9 +37,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // 写入文件
     writeFile: (opt) => {
-        const url = path.join(__dirname, opt.path)
+        const url = path.join(userPath, opt.path)
         fs.writeFile(url, opt.str, (err) => {
             opt.cb && opt.cb(err)
         })
     }
 })
+
+// 获取 userData 的路径 - app.getPath只能在主进程中调用，所以这里初始化的时候从main.js获取
+ipcRenderer.send('getUserPath')
+ipcRenderer.on('got-user-path', (event, arg) => userPath = arg)
