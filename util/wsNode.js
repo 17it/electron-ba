@@ -62,8 +62,8 @@ function connectWs(callBack){
 
                 if (data.stream.includes(sufix)) {
                     const coin = data.stream.replace(sufix, '')
-                    const arrow = wsObj[coin] ? (fixNum(cl, 4) > parseFloat(wsObj[coin]) ? '↑' : '↓') : ''
-                    wsObj[coin] = `${fixNum(cl, 4)}${arrow}`
+                    const arrow = wsObj[coin] ? (fixNum(cl, 8) > parseFloat(wsObj[coin]) ? '↑' : '↓') : ''
+                    wsObj[coin] = `${fixNum(cl, 8)}${arrow}`
                 }
 
                 const keys = Object.keys(wsObj)
