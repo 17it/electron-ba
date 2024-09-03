@@ -1,12 +1,14 @@
 const { app, BrowserWindow, Notification, Menu, Tray, nativeImage, ipcMain } = require('electron')
 const { connectWs } = require('./util/wsNode')
 const path = require('node:path')
+const fs = require('fs')
 
 // 设置系统代理
 // app.commandLine.appendSwitch('proxy-server', 'socks5://127.0.0.1:7890')
 
 let mainWin
 let pairWin
+let proxyWin
 
 /**
  * 有两种方法可以链接websocket
@@ -26,8 +28,12 @@ const createWindow = () => {
         }
     })
 
-    mainWin.webContents.session.setProxy({
-        proxyRules: 'socks5://127.0.0.1:7890'
+    getConfig((data) => {
+        if (data && data.socks) {
+            mainWin.webContents.session.setProxy({
+                proxyRules: data.socks
+            })
+        }
     })
 
     // mainWin.loadFile('index.html')
@@ -46,6 +52,17 @@ function showNotification (msg) {
     new Notification({ title: NOTIFICATION_TITLE, body: msg || NOTIFICATION_BODY }).show()
 }
 
+// 读取配置文件
+function getConfig(callBack) {
+    const url = path.join(app.getPath('userData'), './config.yaml')
+
+    fs.readFile(url, 'utf8', (err, dataStr) => {
+        const data = JSON.parse(dataStr)
+
+        callBack(data, err)
+    })
+}
+
 // 设置监听
 function setListener() {
     // 监听重连ws事件
@@ -60,6 +77,9 @@ function setListener() {
     ipcMain.on('closeWindow', (event, type) => {
         if (type === 'pair') {
             pairWin.destroy()
+        }
+        if (type === 'proxy') {
+            proxyWin.destroy()
         }
     })
 
@@ -85,6 +105,12 @@ function initTray(flag) {
             label: '设置币对',
             click: function(){
                 setParis()
+            }
+        },
+        {
+            label: '设置代理',
+            click: function(){
+                setProxy()
             }
         },
         {
@@ -126,7 +152,26 @@ function wsInit() {
 }
 
 // 设置代理
-function setProxy() {}
+function setProxy() {
+    proxyWin = new BrowserWindow({
+        titleBarStyle: 'hidden',
+        titleBarOverlay: {
+            color: '#2f3241',
+            symbolColor: '#74b1be',
+            height: 60
+        },
+        width: 400,
+        height: 300,
+        webPreferences: {
+            nodeIntegration: true,
+            preload: path.join(__dirname, 'preload.js')
+        }
+    })
+
+    // proxyWin.webContents.openDevTools()
+
+    proxyWin.loadFile('pages/proxy/proxy.html')
+}
 
 // 窗口置顶
 function setOnTop() {

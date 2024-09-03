@@ -23,15 +23,15 @@ function connectWs(callBack){
     const url = path.join(app.getPath('userData'), './config.yaml')
 
     fs.readFile(url, 'utf8', (err, dataStr) => {
-        const data = JSON.parse(dataStr)
-
-        // 注意：这里不能用socks5，不知道为啥
-        // const proxyAgent = new SocksProxyAgent(`socks5://127.0.0.1:7890`);
-        const proxyAgent = new SocksProxyAgent(`socks://127.0.0.1:7890`);
+        const conf = JSON.parse(dataStr)
         const connect = () => {
-            socket = new WebSocket('wss://stream.binance.com:9443/stream?streams=', {
-                agent: proxyAgent
-            })
+            let opt = {}
+            if (conf.socks) { // 配置代理
+                // 注意：这里不能用socks5，不知道为啥
+                const proxyAgent = new SocksProxyAgent(conf.socks.replace('socks5', 'socks'));
+                opt = { agent: proxyAgent }
+            }
+            socket = new WebSocket('wss://stream.binance.com:9443/stream?streams=', opt)
         }
         connect() // 连接ws
 
@@ -41,7 +41,7 @@ function connectWs(callBack){
 
             socket.send(JSON.stringify({
                 "method": "SUBSCRIBE",
-                "params": data.pairs,
+                "params": conf.pairs,
                 "id": 1
             }))
         }
