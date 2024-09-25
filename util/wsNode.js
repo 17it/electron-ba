@@ -70,7 +70,7 @@ function connectWs(callBack){
                 const values = Object.values(wsObj)
 
 
-                callBack('title', keys.map((key, index) => `${key}:${values[index]}`).join('  '))
+                callBack('title', keys.map((key, index) => `${key}:${values[index]}`).join('  '), wsObj)
             }
         }
 

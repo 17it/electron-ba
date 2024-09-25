@@ -41,8 +41,8 @@ const createWindow = () => {
 
     // mainWin.webContents.openDevTools()
 
-    // mainWin.loadURL('https://contract-test.imeik.com/')
-    mainWin.loadURL('https://www.google.com/')
+    // mainWin.loadURL('https://www.google.com/')
+    mainWin.loadFile('pages/main/index.html')
 }
 
 // 消息通知
@@ -138,9 +138,10 @@ function setTrayTitle(title) {
 
 // 连接ws
 function wsInit() {
-    connectWs((type, msg) => {
+    connectWs((type, msg, extra) => {
         if (type === 'title') {
             setTrayTitle(msg)
+            mainWin.webContents.send('wsContent', extra)
         }
         if (type === 'notify') {
             showNotification(msg)

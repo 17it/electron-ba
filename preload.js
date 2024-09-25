@@ -41,7 +41,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
         fs.writeFile(url, opt.str, (err) => {
             opt.cb && opt.cb(err)
         })
-    }
+    },
+
+    // socket内容更新
+    onWsContent: (cb) => ipcRenderer.on('wsContent', (_event, value) => cb(value))
 })
 
 // 获取 userData 的路径 - app.getPath只能在主进程中调用，所以这里初始化的时候从main.js获取
