@@ -11,3 +11,7 @@ window.electronAPI.onWsContent((data) => {
 
     dom.innerHTML = arr.join('')
 })
+
+function closeMainWin() {
+    window.electronAPI.closeWindow('main')
+}

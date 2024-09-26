@@ -4,9 +4,29 @@
     <meta charset="UTF-8">
     <title>首页</title>
     <style>
+        html {
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            margin: 0;
+            color: #333;
+        }
+
+        .main-nav {
+            padding: 10px 6px 0;
+        }
+
+        .main-close {
+            cursor: pointer;
+            padding: 0 10px;
+        }
+
         #pairMain {
-            padding-top: 10px;
-            font-weight: 600;
+            padding: 10px;
+            font-size: 13px;
+            -webkit-app-region: drag;
         }
 
         #pairMain p {
@@ -23,14 +43,19 @@
         }
 
         .down {
-            color: #f34e5f;
+            color: #F56C6C;
         }
     </style>
 </head>
 <body>
+    <div class="main-nav">
+        <span class="main-close" onclick="closeMainWin()">x</span>
+    </div>
+
     <div id="pairMain">
 
     </div>
+
     <script src="./index.js"></script>
 </body>
 </html>

@@ -20,8 +20,9 @@ let proxyWin
  */
 const createWindow = () => {
     mainWin = new BrowserWindow({
-        width: 400,
-        height: 240,
+        width: 150,
+        height: 200,
+        frame: false,
         webPreferences: {
             nodeIntegration: true,
             preload: path.join(__dirname, 'preload.js')
@@ -80,6 +81,9 @@ function setListener() {
         }
         if (type === 'proxy') {
             proxyWin.destroy()
+        }
+        if (type === 'main') {
+            mainWin.destroy()
         }
     })
 
@@ -140,8 +144,14 @@ function setTrayTitle(title) {
 function wsInit() {
     connectWs((type, msg, extra) => {
         if (type === 'title') {
-            setTrayTitle(msg)
-            mainWin.webContents.send('wsContent', extra)
+            try {
+                if (mainWin.isDestroyed()) {
+                    setTrayTitle(msg)
+                } else {
+                    mainWin && mainWin.webContents && mainWin.webContents.send('wsContent', extra)
+                    setTrayTitle('ba')
+                }
+            } catch (_) {}
         }
         if (type === 'notify') {
             showNotification(msg)
@@ -208,7 +218,7 @@ app.whenReady().then(() => {
     createWindow()
 
     initTray()
-    setTrayTitle('binance')
+    setTrayTitle('ba')
 
     setListener()
 
