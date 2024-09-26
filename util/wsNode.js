@@ -11,8 +11,21 @@ const sufix = 'usdt@kline_1m'
 const wsObj = { }
 let socket
 
+// 获取小数点后不为0的位数
+function getDecimalPlaces(num) {
+    const numStr = num.toString();
+    const parts = numStr.split('.');
+    if (parts.length <= 1) {
+        return 0
+    }
+
+    let decimalPart = parts[1].replace(/0*$/, '');
+    return decimalPart ? decimalPart.length : 0;
+}
+
 // 小数位数展示
 function fixNum(num, fix = 2) {
+    fix = Math.min(getDecimalPlaces(num), fix)
     const pow = Math.pow(10, fix)
 
     return parseInt(num * pow) / pow
