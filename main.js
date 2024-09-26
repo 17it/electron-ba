@@ -20,8 +20,8 @@ let proxyWin
  */
 const createWindow = () => {
     mainWin = new BrowserWindow({
-        width: 150,
-        height: 200,
+        width: 120,
+        height: 160,
         frame: false,
         webPreferences: {
             nodeIntegration: true,
