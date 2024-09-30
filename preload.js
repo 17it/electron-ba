@@ -44,7 +44,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
 
     // socket内容更新
-    onWsContent: (cb) => ipcRenderer.on('wsContent', (_event, value) => cb(value))
+    onWsContent: (cb) => ipcRenderer.on('wsContent', (_event, value) => cb(value)),
+
+    // 窗口隐身、取消隐身
+    onWinInvisible: (cb) => ipcRenderer.on('winInvisible', (_event, value) => cb(value))
 })
 
 // 获取 userData 的路径 - app.getPath只能在主进程中调用，所以这里初始化的时候从main.js获取

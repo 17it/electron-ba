@@ -1,5 +1,8 @@
 window.addEventListener('DOMContentLoaded', () => {
+    checkMainWinVisible()
 })
+
+var mainWinVisiable = false
 
 window.electronAPI.onWsContent((data) => {
     var dom = document.getElementById('pairMain')
@@ -11,6 +14,22 @@ window.electronAPI.onWsContent((data) => {
 
     dom.innerHTML = arr.join('')
 })
+
+window.electronAPI.onWinInvisible((data) => {
+    checkMainWinVisible()
+})
+
+function checkMainWinVisible() {
+    var body = document.body
+
+    if (!mainWinVisiable) {
+        body.classList.add('invisible')
+        mainWinVisiable = true
+    } else {
+        body.classList.remove('invisible')
+        mainWinVisiable = false
+    }
+}
 
 function closeMainWin() {
     window.electronAPI.closeWindow('main')

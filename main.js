@@ -127,6 +127,12 @@ function initTray(flag) {
             }
         },
         {
+            label: '隐身/取消隐身',
+            click: function(){
+                setInvisible()
+            }
+        },
+        {
             label: '退出',
             click: function(){
                 app.quit()
@@ -194,6 +200,13 @@ function setOnTop() {
     }
 
     initTray(true)
+}
+
+// 窗口隐身、取消隐身
+function setInvisible() {
+    if (!mainWin.isDestroyed()) {
+        mainWin && mainWin.webContents && mainWin.webContents.send('winInvisible')
+    }
 }
 
 // 设置币对
