@@ -23,6 +23,8 @@ const createWindow = () => {
         width: 120,
         height: 160,
         frame: false,
+        transparent: true,
+        backgroundColor: '#00000000',
         webPreferences: {
             nodeIntegration: true,
             preload: path.join(__dirname, 'preload.js')
@@ -103,7 +105,7 @@ function initTray(flag) {
         tray = new Tray(icon)
     }
 
-    const label = mainWin.isAlwaysOnTop() ? '取消置顶' : '置顶'
+    const label = !mainWin.isDestroyed() && mainWin.isAlwaysOnTop() ? '取消置顶' : '置顶'
     contextMenu = Menu.buildFromTemplate([
         {
             label: '设置币对',
@@ -186,8 +188,10 @@ function setProxy() {
 
 // 窗口置顶
 function setOnTop() {
-    const flag = mainWin.isAlwaysOnTop()
-    mainWin.setAlwaysOnTop(!flag)
+    if (!mainWin.isDestroyed()) {
+        const flag = mainWin.isAlwaysOnTop()
+        mainWin.setAlwaysOnTop(!flag)
+    }
 
     initTray(true)
 }

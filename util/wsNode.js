@@ -7,6 +7,8 @@ const { app } = require('electron');
 /**
  * 使用nodejs带的包ws连socket（即使退出当前窗口也能继续执行）
  */
+const reconnectTimeout = 2000 // 尝试重连的时间间隔
+let isReconnecting = false // 用于记录当前是否处于重连的状态
 const sufix = 'usdt@kline_1m'
 const wsObj = { }
 let socket
@@ -32,7 +34,16 @@ function fixNum(num, fix = 2) {
 }
 
 // 连binance的websocket
-function connectWs(callBack){
+function connectWs (callBack) {
+    if (isReconnecting) { return }
+    isReconnecting = true
+    setTimeout(() => {
+        isReconnecting = false
+        startConnect(callBack)
+    }, reconnectTimeout)
+}
+
+function startConnect(callBack){
     const url = path.join(app.getPath('userData'), './config.yaml')
 
     fs.readFile(url, 'utf8', (err, dataStr) => {
@@ -52,17 +63,18 @@ function connectWs(callBack){
         socket.onopen = () => {
             console.log("onopen ...");
 
-            socket.send(JSON.stringify({
-                "method": "SUBSCRIBE",
-                "params": conf.pairs,
-                "id": 1
-            }))
+            try {
+                socket.send(JSON.stringify({
+                    "method": "SUBSCRIBE",
+                    "params": conf.pairs,
+                    "id": 1
+                }))
+            }catch (_) {}
         }
 
         //消息监听
         socket.onmessage = (evt) => {
             let data = evt.data
-            // console.log("onmessage ...", data);
 
             try {
                 data = JSON.parse(data)
