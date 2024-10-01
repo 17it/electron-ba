@@ -25,7 +25,7 @@ const createWindow = () => {
         frame: false,
         transparent: true,
         backgroundColor: '#00000000',
-        hasShadow: false,
+        hasShadow: false, // 解决透明窗口重影
         webPreferences: {
             nodeIntegration: true,
             preload: path.join(__dirname, 'preload.js')
