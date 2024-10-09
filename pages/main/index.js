@@ -9,7 +9,7 @@ window.electronAPI.onWsContent((data) => {
 
     const arr = Object.keys(data).map(i => {
         const cls = data[i].includes('↓') ? 'down' : 'up'
-        return `<p class="coin-item">${i}:<span class="${cls}">${data[i]}</span></p>`
+        return `<p class="${cls} coin-item">${i}:<span>${data[i]}</span></p>`
     })
 
     dom.innerHTML = arr.join('')
