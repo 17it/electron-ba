@@ -8,8 +8,10 @@ window.electronAPI.onWsContent((data) => {
     var dom = document.getElementById('pairMain')
 
     const arr = Object.keys(data).map(i => {
-        const cls = data[i].includes('↓') ? 'down' : 'up'
-        return `<p class="${cls} coin-item">${i}:<span>${data[i]}</span></p>`
+        const { price, trend } = data[i]
+        const cls = price.includes('↓') ? 'down' : 'up'
+        const cst = trend > 0 ? 'up' : 'down'
+        return `<p class="${cls} coin-item">${i}:<span>${price}</span><span class="${cst}">${trend}%</span></p>`
     })
 
     dom.innerHTML = arr.join('')

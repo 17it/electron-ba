@@ -2,7 +2,7 @@ const { SocksProxyAgent } = require('socks-proxy-agent')
 const path = require('path')
 const WebSocket = require('ws')
 const fs = require('fs')
-const { app } = require('electron');
+const { app, net } = require('electron');
 
 /**
  * 使用nodejs带的包ws连socket（即使退出当前窗口也能继续执行）
@@ -43,6 +43,44 @@ function connectWs (callBack) {
     }, reconnectTimeout)
 }
 
+// 获取当天utc0点时的行情
+let loading = false
+let openPriceMap = {}
+let pricePairs = []
+function getTicket() {
+    if (loading) { return }
+
+    const url = 'https://api.binance.com/api/v3/ticker/tradingDay?type=MINI&symbols='
+    const params = `%5B%22${pricePairs.map(i => i.toUpperCase()).join('%22,%22')}%22%5D`
+    loading = true
+
+    const request = net.request(`${url}${params}`)
+    request.on('response', (response) => {
+        let data = '';
+
+        response.on('data', (chunk) => {
+            data += chunk;
+        })
+
+        response.on('end', () => {
+            try {
+                // 将接收到的数据转换为JSON对象
+                const json = JSON.parse(data);
+                if (json && json.length) {
+                    json.forEach(item => {
+                        openPriceMap[item.symbol] = fixNum(item.openPrice || 0, 8)
+                    })
+                }
+            } catch (error) {
+                console.error('JSON解析失败:', error);
+            }
+
+            loading = false
+        })
+    })
+    request.end()
+}
+
 function startConnect(callBack){
     const url = path.join(app.getPath('userData'), './config.yaml')
 
@@ -58,6 +96,8 @@ function startConnect(callBack){
             socket = new WebSocket('wss://stream.binance.com:9443/stream?streams=', opt)
         }
         connect() // 连接ws
+        pricePairs = conf.pairs.map(i => `${i.replace(sufix, '')}usdt`)
+        getTicket() // 获取币对当天utc0时的价格
 
         //连接成功回调
         socket.onopen = () => {
@@ -87,15 +127,24 @@ function startConnect(callBack){
 
                 if (data.stream.includes(sufix)) {
                     const coin = data.stream.replace(sufix, '')
-                    const arrow = wsObj[coin] ? (fixNum(cl, 8) > parseFloat(wsObj[coin]) ? '↑' : '↓') : ''
-                    wsObj[coin] = `${fixNum(cl, 8)}${arrow}`
+                    const arrow = wsObj[coin] && wsObj[coin].price ? (fixNum(cl, 8) > parseFloat(wsObj[coin].price) ? '↑' : '↓') : ''
+
+                    let trend = ''
+                    const key = `${(coin+'usdt').toUpperCase()}`
+                    if (openPriceMap[key]) {
+                        trend = fixNum((cl / openPriceMap[key] - 1) * 100, 2)
+                    } else {
+                        getTicket()
+                    }
+
+                    wsObj[coin] = { price: `${fixNum(cl, 8)}${arrow}`, trend }
                 }
 
                 const keys = Object.keys(wsObj)
                 const values = Object.values(wsObj)
 
 
-                callBack('title', keys.map((key, index) => `${key}:${values[index]}`).join('  '), wsObj)
+                callBack('title', keys.map((key, index) => `${key}:${values[index].price}`).join('  '), wsObj)
             }
         }
 
