@@ -33,6 +33,12 @@ function fixNum(num, fix = 2) {
     return parseInt(num * pow) / pow
 }
 
+// 获取当前时间
+function getNowDay() {
+    const now = new Date()
+    return `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`
+}
+
 // 连binance的websocket
 function connectWs (callBack) {
     if (isReconnecting) { return }
@@ -67,8 +73,9 @@ function getTicket() {
                 // 将接收到的数据转换为JSON对象
                 const json = JSON.parse(data);
                 if (json && json.length) {
+                    openPriceMap[getNowDay()] = openPriceMap[getNowDay()] || {}
                     json.forEach(item => {
-                        openPriceMap[item.symbol] = fixNum(item.openPrice || 0, 8)
+                        openPriceMap[getNowDay()][item.symbol] = fixNum(item.openPrice || 0, 8)
                     })
                 }
             } catch (error) {
@@ -131,8 +138,8 @@ function startConnect(callBack){
 
                     let trend = ''
                     const key = `${(coin+'usdt').toUpperCase()}`
-                    if (openPriceMap[key]) {
-                        trend = fixNum((cl / openPriceMap[key] - 1) * 100, 2)
+                    if (openPriceMap[getNowDay()] && openPriceMap[getNowDay()][key]) {
+                        trend = fixNum((cl / openPriceMap[getNowDay()][key] - 1) * 100, 2)
                     } else {
                         getTicket()
                     }
