@@ -151,13 +151,13 @@ function setTrayTitle(title) {
 
 // 连接ws
 function wsInit() {
-    connectWs((type, msg, extra) => {
+    connectWs((type, msg, extra, pairs) => {
         if (type === 'title') {
             try {
                 if (mainWin.isDestroyed()) {
                     setTrayTitle(msg)
                 } else {
-                    mainWin && mainWin.webContents && mainWin.webContents.send('wsContent', extra)
+                    mainWin && mainWin.webContents && mainWin.webContents.send('wsContent', extra, pairs)
                     setTrayTitle('ba')
                 }
             } catch (_) {}

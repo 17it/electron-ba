@@ -11,6 +11,7 @@ const reconnectTimeout = 2000 // 尝试重连的时间间隔
 let isReconnecting = false // 用于记录当前是否处于重连的状态
 const sufix = 'usdt@kline_1m'
 const wsObj = { }
+let pairs = []
 let socket
 
 // 获取小数点后不为0的位数
@@ -93,6 +94,8 @@ function startConnect(callBack){
 
     fs.readFile(url, 'utf8', (err, dataStr) => {
         const conf = JSON.parse(dataStr)
+        pairs = [].concat(conf.pairs).map(i => i.replace(sufix, ''))
+
         const connect = () => {
             let opt = {}
             if (conf.socks) { // 配置代理
@@ -147,11 +150,12 @@ function startConnect(callBack){
                     wsObj[coin] = { price: `${fixNum(cl, 8)}${arrow}`, trend }
                 }
 
-                const keys = Object.keys(wsObj)
+                const fun = (x,y) => pairs.indexOf(x) > pairs.indexOf(y) ? 1 : -1
+                const keys = Object.keys(wsObj).sort(fun)
                 const values = Object.values(wsObj)
 
 
-                callBack('title', keys.map((key, index) => `${key}:${values[index].price}`).join('  '), wsObj)
+                callBack('title', keys.map((key, index) => `${key}:${values[index].price}`).join('  '), wsObj, pairs)
             }
         }
 

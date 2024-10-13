@@ -44,7 +44,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
 
     // socket内容更新
-    onWsContent: (cb) => ipcRenderer.on('wsContent', (_event, value) => cb(value)),
+    onWsContent: (cb) => ipcRenderer.on('wsContent', (_event, value, pairs) => cb(value, pairs)),
 
     // 窗口隐身、取消隐身
     onWinInvisible: (cb) => ipcRenderer.on('winInvisible', (_event, value) => cb(value))

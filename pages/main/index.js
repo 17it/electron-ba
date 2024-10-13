@@ -4,14 +4,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
 var mainWinVisiable = false
 
-window.electronAPI.onWsContent((data) => {
+window.electronAPI.onWsContent((data, pairs) => {
     var dom = document.getElementById('pairMain')
 
-    const arr = Object.keys(data).map(i => {
+    const fun = (x,y) => pairs.indexOf(x) > pairs.indexOf(y) ? 1 : -1
+    const keys = Object.keys(data).sort(fun)
+    const arr = keys.map(i => {
         const { price, trend } = data[i]
         const cls = price.includes('↓') ? 'down' : 'up'
         const cst = trend > 0 ? 'up' : 'down'
-        return `<p class="${cls} coin-item">${i}:<span>${price}</span><span class="${cst}">${trend}%</span></p>`
+        return `<p class="coin-item"><span class="${cst} md">${i.toUpperCase()}: </span><span class="${cls}">${price}</span><span class="${cst} sm">${trend}%</span></p>`
     })
 
     dom.innerHTML = arr.join('')
