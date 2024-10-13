@@ -152,10 +152,8 @@ function startConnect(callBack){
 
                 const fun = (x,y) => pairs.indexOf(x) > pairs.indexOf(y) ? 1 : -1
                 const keys = Object.keys(wsObj).sort(fun)
-                const values = Object.values(wsObj)
 
-
-                callBack('title', keys.map((key, index) => `${key}:${values[index].price}`).join('  '), wsObj, pairs)
+                callBack('title', keys.map((key) => `${key}:${wsObj[key].price}`).join('  '), wsObj, pairs)
             }
         }
 
