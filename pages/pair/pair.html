@@ -45,13 +45,23 @@
             font-size: 14px;
             border-radius: 4px;
         }
+
+        .tips-p {
+            color: #666;
+            font-size: 12px;
+            margin: 3px 0;
+        }
     </style>
 </head>
 <body>
     <div id="pairWrap">
         <p style="color: #303133;font-weight: 600;font-size: 16px;">设置币对</p>
 
-        <input id="pairs" />
+        <p class="tips-p">说明：</p>
+        <p class="tips-p">1、不同币对之间英文逗号分隔，如: btc,eth </p>
+        <p class="tips-p">2、如果币对后面有加分号(如：btc:75000,eth:2800)，则涨跌幅根据分号后面的数值计算，默认为当天8点的价格计算 </p>
+
+        <input id="pairs" style="margin-top: 10px;" />
 
         <div style="text-align: right">
             <button class="btn" onclick="submit()">确定</button>

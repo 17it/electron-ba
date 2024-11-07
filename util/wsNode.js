@@ -54,6 +54,7 @@ function connectWs (callBack) {
 let loading = false
 let openPriceMap = {}
 let pricePairs = []
+let priceBase = {}
 function getTicket() {
     if (loading) { return }
 
@@ -93,8 +94,18 @@ function startConnect(callBack){
     const url = path.join(app.getPath('userData'), './config.yaml')
 
     fs.readFile(url, 'utf8', (err, dataStr) => {
+        priceBase = {}
         const conf = JSON.parse(dataStr)
-        pairs = [].concat(conf.pairs).map(i => i.replace(sufix, ''))
+        const options = [].concat(conf.pairs).map(i => {
+            const el = i.replace(sufix, '')
+            if (el.includes(':')) {
+                const arr = el.split(':')
+                priceBase[arr[0]] = arr[1]
+                return `${arr[0]}${sufix}`
+            }
+            return `${el}${sufix}`
+        })
+        pairs = [].concat(options).map(i => i.replace(sufix, ''))
 
         const connect = () => {
             let opt = {}
@@ -106,7 +117,7 @@ function startConnect(callBack){
             socket = new WebSocket('wss://stream.binance.com:9443/stream?streams=', opt)
         }
         connect() // 连接ws
-        pricePairs = conf.pairs.map(i => `${i.replace(sufix, '')}usdt`)
+        pricePairs = [].concat(options).map(i => `${i.replace(sufix, '')}usdt`)
         getTicket() // 获取币对当天utc0时的价格
 
         //连接成功回调
@@ -116,7 +127,7 @@ function startConnect(callBack){
             try {
                 socket.send(JSON.stringify({
                     "method": "SUBSCRIBE",
-                    "params": conf.pairs,
+                    "params": options,
                     "id": 1
                 }))
             }catch (_) {}
@@ -142,7 +153,7 @@ function startConnect(callBack){
                     let trend = ''
                     const key = `${(coin+'usdt').toUpperCase()}`
                     if (openPriceMap[getNowDay()] && openPriceMap[getNowDay()][key]) {
-                        trend = fixNum((cl / openPriceMap[getNowDay()][key] - 1) * 100, 2)
+                        trend = fixNum((cl / (priceBase[coin] || openPriceMap[getNowDay()][key]) - 1) * 100, 2)
                     } else {
                         getTicket()
                     }
