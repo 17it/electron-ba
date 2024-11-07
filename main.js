@@ -8,6 +8,7 @@ const fs = require('fs')
 
 let mainWin
 let pairWin
+let pairRemind
 let proxyWin
 
 /**
@@ -82,6 +83,9 @@ function setListener() {
         if (type === 'pair') {
             pairWin.destroy()
         }
+        if (type === 'remind') {
+            pairRemind.destroy()
+        }
         if (type === 'proxy') {
             proxyWin.destroy()
         }
@@ -112,6 +116,12 @@ function initTray(flag) {
             label: '设置币对',
             click: function(){
                 setParis()
+            }
+        },
+        {
+            label: '价格提醒',
+            click: function(){
+                setRemind()
             }
         },
         {
@@ -230,6 +240,28 @@ function setParis() {
     // pairWin.webContents.openDevTools()
 
     pairWin.loadFile('pages/pair/pair.html')
+}
+
+// 价格提醒
+function setRemind() {
+    pairRemind = new BrowserWindow({
+        titleBarStyle: 'hidden',
+        titleBarOverlay: {
+            color: '#2f3241',
+            symbolColor: '#74b1be',
+            height: 60
+        },
+        width: 400,
+        height: 300,
+        webPreferences: {
+            nodeIntegration: true,
+            preload: path.join(__dirname, 'preload.js')
+        }
+    })
+
+    // pairRemind.webContents.openDevTools()
+
+    pairRemind.loadFile('pages/remind/remind.html')
 }
 
 app.whenReady().then(() => {

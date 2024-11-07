@@ -55,6 +55,7 @@ let loading = false
 let openPriceMap = {}
 let pricePairs = []
 let priceBase = {}
+let priceReminds = []
 function getTicket() {
     if (loading) { return }
 
@@ -106,6 +107,7 @@ function startConnect(callBack){
             return `${el}${sufix}`
         })
         pairs = [].concat(options).map(i => i.replace(sufix, ''))
+        priceReminds = conf.reminds || []
 
         const connect = () => {
             let opt = {}
@@ -148,7 +150,8 @@ function startConnect(callBack){
 
                 if (data.stream.includes(sufix)) {
                     const coin = data.stream.replace(sufix, '')
-                    const arrow = wsObj[coin] && wsObj[coin].price ? (fixNum(cl, 8) > parseFloat(wsObj[coin].price) ? '↑' : '↓') : ''
+                    const lastPrice = wsObj[coin] && wsObj[coin].price
+                    const arrow = lastPrice ? (fixNum(cl, 8) > parseFloat(wsObj[coin].price) ? '↑' : '↓') : ''
 
                     let trend = ''
                     const key = `${(coin+'usdt').toUpperCase()}`
@@ -156,6 +159,19 @@ function startConnect(callBack){
                         trend = fixNum((cl / (priceBase[coin] || openPriceMap[getNowDay()][key]) - 1) * 100, 2)
                     } else {
                         getTicket()
+                    }
+
+                    const rm = priceReminds.filter(i => i.includes(`${coin}:`))
+                    if (rm.length && lastPrice) {
+                        rm.forEach(i => {
+                            const p = i.split(':')[1]
+                            if (p && lastPrice < p && p < cl) {
+                                callBack('notify', `${coin}的价格达到${p}`)
+                            }
+                            if (p && lastPrice > p && p > cl) {
+                                callBack('notify', `${coin}的价格跌破${p}`)
+                            }
+                        })
                     }
 
                     wsObj[coin] = { price: `${fixNum(cl, 8)}${arrow}`, trend }
