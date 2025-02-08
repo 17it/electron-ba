@@ -156,7 +156,11 @@ function startConnect(callBack){
                     let trend = ''
                     const key = `${(coin+'usdt').toUpperCase()}`
                     if (openPriceMap[getNowDay()] && openPriceMap[getNowDay()][key]) {
-                        trend = fixNum((cl / (priceBase[coin] || openPriceMap[getNowDay()][key]) - 1) * 100, 2)
+                        if (priceBase[coin]) {
+                            trend = fixNum((cl - priceBase[coin]) / cl * 100, 2)
+                        } else {
+                            trend = fixNum((cl / openPriceMap[getNowDay()][key] - 1) * 100, 2)
+                        }
                     } else {
                         getTicket()
                     }
