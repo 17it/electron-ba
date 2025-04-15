@@ -33,11 +33,23 @@ const createWindow = () => {
         }
     })
 
+    // 缩放主窗口的时候记住窗口大小
+    mainWin.on('resize', () => {
+        const { height, width } = mainWin.getBounds()
+        setConfig('rect.mainWin', { width, height })
+    })
+
     getConfig((data) => {
         if (data && data.socks) {
             mainWin.webContents.session.setProxy({
                 proxyRules: data.socks
             })
+        }
+
+        // 调整窗口大小为上次调整后的大小
+        const rect = data?.rect?.mainWin
+        if (rect) {
+            mainWin.setBounds({ width: rect.width, height: rect.height })
         }
     })
 
@@ -67,6 +79,36 @@ function getConfig(callBack) {
         callBack(data, err)
     })
 }
+
+// 设置配置文件
+function setConfig(key, value) {
+    const url = path.join(app.getPath('userData'), './config.yaml')
+
+    function safeSet(obj, path, value) {
+        const keys = path.split('.')
+        let current = obj
+
+        keys.slice(0, -1).forEach(key => {
+            current[key] = current[key] || {}
+            current = current[key]
+        });
+
+        current[keys.pop()] = value
+    }
+
+    fs.readFile(url, 'utf8', (err, dataStr) => {
+        const data = JSON.parse(dataStr)
+
+        safeSet(data, key, value)
+
+        const str = JSON.stringify(data, null, 2)
+
+        fs.writeFile(url, str, (err) => {
+            err && console.log('writeFile error: ' + err)
+        })
+    })
+}
+
 
 // 设置监听
 function setListener() {
