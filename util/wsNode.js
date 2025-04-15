@@ -151,13 +151,19 @@ function startConnect(callBack){
                 if (data.stream.includes(sufix)) {
                     const coin = data.stream.replace(sufix, '')
                     const lastPrice = wsObj[coin] && wsObj[coin].price
-                    const arrow = lastPrice ? (fixNum(cl, 8) > parseFloat(wsObj[coin].price) ? '↑' : '↓') : ''
+                    let arrow = lastPrice ? (fixNum(cl, 8) > parseFloat(wsObj[coin].price) ? '↑' : '↓') : ''
 
                     let trend = ''
                     const key = `${(coin+'usdt').toUpperCase()}`
                     if (openPriceMap[getNowDay()] && openPriceMap[getNowDay()][key]) {
                         if (priceBase[coin]) {
-                            trend = fixNum((cl - priceBase[coin]) / cl * 100, 2)
+                            trend = fixNum((cl - Math.abs(priceBase[coin])) / cl * 100, 2)
+                            // 是否是做空
+                            const low = priceBase[coin] < 0
+                            if (low) {
+                                arrow = arrow === '↑' ? '↓' : (arrow === '↓' ? '↑' : '')
+                                trend *= -1
+                            }
                         } else {
                             trend = fixNum((cl / openPriceMap[getNowDay()][key] - 1) * 100, 2)
                         }
