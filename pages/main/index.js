@@ -2,7 +2,7 @@ window.addEventListener('DOMContentLoaded', () => {
     checkMainWinVisible()
 })
 
-var mainWinVisiable = false
+var mainWinVisiable = true // 默认隐身
 
 window.electronAPI.onWsContent((data, pairs) => {
     var dom = document.getElementById('pairMain')

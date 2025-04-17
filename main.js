@@ -39,6 +39,9 @@ const createWindow = () => {
         setConfig('rect.mainWin', { width, height })
     })
 
+    // 默认置顶
+    mainWin.setAlwaysOnTop(true)
+
     getConfig((data) => {
         if (data && data.socks) {
             mainWin.webContents.session.setProxy({
@@ -108,7 +111,6 @@ function setConfig(key, value) {
         })
     })
 }
-
 
 // 设置监听
 function setListener() {
