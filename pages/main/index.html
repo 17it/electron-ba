@@ -25,14 +25,16 @@
             height: 23px;
         }
 
-        .main-close {
+        .main-close,
+        .main-refresh {
             cursor: pointer;
             padding: 0 10px;
             display: none;
         }
 
-        .main-nav:hover .main-close {
-            display: block;
+        .main-nav:hover .main-close,
+        .main-nav:hover .main-refresh {
+            display: inline-block;
         }
 
         #pairMain {
@@ -73,6 +75,7 @@
 <body>
     <div class="main-nav">
         <span class="main-close" onclick="closeMainWin()">x</span>
+        <span class="main-refresh" onclick="refreshMainWin()">@</span>
     </div>
 
     <div id="pairMain">

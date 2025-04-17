@@ -38,3 +38,7 @@ function checkMainWinVisible() {
 function closeMainWin() {
     window.electronAPI.closeWindow('main')
 }
+
+function refreshMainWin() {
+    window.electronAPI.reconnectWs()
+}
