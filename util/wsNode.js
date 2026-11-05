@@ -88,6 +88,10 @@ function getTicket() {
             loading = false
         })
     })
+    request.on('error', (err) => {
+        console.error('getTicket request error:', err)
+        loading = false
+    })
     request.end()
 }
 
